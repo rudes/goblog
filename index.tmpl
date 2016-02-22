@@ -1,0 +1,18 @@
+{{ define "content" }}
+	{{ $logged := .Logged }}
+	{{ range .Posts }}
+		<div class="container">
+			<div class="title" id="{{ .ID }}">
+				<a href="/show/{{ .ID }}" class="title">{{ .Title }}</a>
+			</div><div class="content">
+				{{ .Content }}
+			</div><div class="post_footer">
+				Date Posted: {{ .Date }}<a class="footer" href="/">Back to Top</a>
+				{{if $logged}}
+					<br><a class="edit" href="/edit/{{ .ID }}">Edit</a>
+					<br><a class="edit" href="/delete/{{ .ID }}">Delete</a>
+				{{end}}
+			</div></div>
+			<br>
+	{{ end }}
+{{ end }}

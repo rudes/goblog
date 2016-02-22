@@ -5,11 +5,14 @@ import (
 	"os"
 )
 
+func openFile() *os.File {
+	f, _ := os.OpenFile("/var/log/OtherLetterApi.log",
+		os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	return f
+}
+
 func LogIt(t Post, s int64) {
-	f, err := os.OpenFile("/var/log/OtherLetterApi.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
+	f := openFile()
 	defer f.Close()
 	log.SetOutput(f)
 	if s == 0 {
@@ -17,4 +20,12 @@ func LogIt(t Post, s int64) {
 	} else {
 		log.Println(t.Title + " Added")
 	}
+}
+
+func LogError(err error) {
+	f := openFile()
+	defer f.Close()
+	log.SetOutput(f)
+
+	log.Println(err)
 }
