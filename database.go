@@ -1,7 +1,11 @@
 package main
 
 import (
+	"crypto/md5"
 	"database/sql"
+	"errors"
+	"fmt"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -13,6 +17,31 @@ func OpenDatabase() *sql.DB {
 		return nil
 	}
 	return db
+}
+
+func DeleteThisLetter(postID string) error {
+	db := OpenDatabase()
+	defer db.Close()
+	res, err := db.Exec("DROP FROM blog_posts WHERE ID=" + postID)
+	if rows, _ := res.RowsAffected(); rows != 0 {
+		LogAnything("Deleted Post " + postID)
+	}
+	return err
+}
+
+func GetThisLetter(postID string) Post {
+	var p Post
+	db := OpenDatabase()
+	err := db.QueryRow("SELECT ID,TITLE,CONTENT,DATE,TIME FROM blog_posts WHERE ID="+
+		postID).Scan(&p.ID,
+		&p.Title,
+		&p.Content,
+		&p.Date,
+		&p.Time)
+	if err != nil {
+		LogError(err)
+	}
+	return p
 }
 
 func GetAllLetters() []Post {
@@ -37,4 +66,47 @@ func GetAllLetters() []Post {
 		p = append(p, po)
 	}
 	return p
+}
+
+func UpdateThisLetter(p Post) error {
+	db := OpenDatabase()
+	if db == nil {
+		return errors.New("Could Not Open Database")
+	}
+	defer db.Close()
+	stmt, err := db.Prepare("UPDATE blog_posts SET CONTENT=? WHERE ID=" + p.ID)
+	if err != nil {
+		return err
+	}
+	res, err := stmt.Exec(p.Content)
+	if err != nil {
+		return err
+	}
+	ro, _ := res.RowsAffected()
+	LogIt(p, ro)
+	return nil
+}
+
+func HandleThisLetter(p Post) {
+	db := OpenDatabase()
+	if db == nil {
+		return
+	}
+	id := fmt.Sprintf("%x", md5.Sum([]byte(p.Title)))
+	t := time.Now()
+	stmt, err := db.Prepare("INSERT IGNORE INTO blog_posts(ID,TITLE,CONTENT,DATE,TIME) VALUES(?,?,?,?,?)")
+	if err != nil {
+		LogError(err)
+		return
+	}
+	res, err := stmt.Exec(id, p.Title, p.Content,
+		fmt.Sprintf("%04d/%02d/%02d", t.Year(), t.Month(), t.Day()),
+		fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second()))
+	//res, err := db.Exec("INSERT IGNORE INTO blog_posts (ID,TITLE,CONTENT,DATE,TIME) VALUES ('" + id + "','" + p.Title + "','" + p.Content + "','" + fmt.Sprintf("%04d/%02d/%02d", t.Year(), t.Month(), t.Day()) + "','" + fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second()) + "')")
+	if err != nil {
+		LogError(err)
+		return
+	}
+	ro, _ := res.RowsAffected()
+	LogIt(p, ro)
 }
