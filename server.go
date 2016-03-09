@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"text/template"
 	"time"
 
@@ -22,7 +23,6 @@ const (
 	*/
 )
 
-var LoggedIn = false
 var l crylog.CryLog
 
 func init() {
@@ -48,20 +48,20 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	context := Context{
 		Posts: p,
 	}
-	render(w, "index", context)
+	render(w, r, "index", context)
 }
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
 	context := Context{}
 	if r.Method == "GET" {
-		render(w, "login", context)
+		render(w, r, "login", context)
 	} else if r.Method == "POST" {
 		name := r.FormValue("username")
 		pass := r.FormValue("password")
 		l.Log("Attempting to Login: ", name)
 		redirectTarget := "/"
 		if name == "rudes" && pass == "demonking" {
-			LoggedIn = true
+			logCookie(w, "true")
 			l.Log("Login Successful")
 			redirectTarget = "/new"
 		}
@@ -69,17 +69,23 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func logCookie(w http.ResponseWriter, value string) {
+	expiration := time.Now().Add(365 * 24 * time.Hour)
+	cookie := http.Cookie{Name: "loggedin", Value: value, Expires: expiration}
+	http.SetCookie(w, &cookie)
+}
+
 func LogOut(w http.ResponseWriter, r *http.Request) {
+	logCookie(w, "false")
 	context := Context{}
-	LoggedIn = false
 	l.Log("Logged Out Successfully")
-	render(w, "index", context)
+	render(w, r, "index", context)
 }
 
 func New(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		context := Context{}
-		render(w, "new", context)
+		render(w, r, "new", context)
 	} else if r.Method == "POST" {
 		content := r.FormValue("content")
 		title := r.FormValue("title")
@@ -104,7 +110,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		context := Context{
 			Posts: p,
 		}
-		render(w, "show", context)
+		render(w, r, "show", context)
 	}
 }
 
@@ -122,7 +128,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 			context := Context{
 				Posts: p,
 			}
-			render(w, "edit", context)
+			render(w, r, "edit", context)
 		} else if r.Method == "POST" {
 			var p Post
 			p.ID = postID
@@ -173,9 +179,12 @@ func HandleLetters(w http.ResponseWriter, r *http.Request) {
 	HandleThisLetter(p)
 }
 
-func render(w http.ResponseWriter, tmpl string, context Context) {
+func render(w http.ResponseWriter, r *http.Request, tmpl string, context Context) {
 	context.Static = STATIC_URL
-	context.LoggedIn = LoggedIn
+	if cookie, _ := r.Cookie("loggedin"); cookie != nil {
+		login, _ := strconv.ParseBool(cookie.Value)
+		context.LoggedIn = login
+	}
 	tl := []string{TEMPLATES + "/base.tmpl", TEMPLATES + "/" + tmpl + ".tmpl"}
 	t, err := template.ParseFiles(tl...)
 	if err != nil {
@@ -197,6 +206,7 @@ func main() {
 	http.HandleFunc("/login/", LogIn)
 	http.HandleFunc("/logout/", LogOut)
 	http.HandleFunc("/delete/", Delete)
+	http.HandleFunc("/new/", New)
 	http.HandleFunc(STATIC_URL, Static)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
