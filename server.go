@@ -29,7 +29,11 @@ type Context struct {
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
-	p := GetAllLetters()
+	p, err := GetAllLetters()
+	if err != nil {
+		LogError(err)
+		return
+	}
 	context := Context{
 		Posts: p,
 	}
@@ -43,9 +47,11 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "POST" {
 		name := r.FormValue("username")
 		pass := r.FormValue("password")
+		LogAnything("Attempting to Login: ", name)
 		redirectTarget := "/"
 		if name == "rudes" && pass == "demonking" {
 			LoggedIn = true
+			LogAnything("Login Successful")
 			redirectTarget = "/new"
 		}
 		http.Redirect(w, r, redirectTarget, 302)
@@ -55,6 +61,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 func LogOut(w http.ResponseWriter, r *http.Request) {
 	context := Context{}
 	LoggedIn = false
+	LogAnything("Logged Out Successfully")
 	render(w, "index", context)
 }
 
@@ -77,8 +84,12 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	postID := r.URL.Path[len("/show/"):]
 	if len(postID) != 0 {
 		var p []Post
-		post := GetThisLetter(postID)
-		p = append(p, post)
+		post, err := GetThisLetter(postID)
+		if err != nil {
+			LogError(err)
+			return
+		}
+		p = append(p, *post)
 		context := Context{
 			Posts: p,
 		}
@@ -91,8 +102,12 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	if len(postID) != 0 {
 		if r.Method == "GET" {
 			var p []Post
-			post := GetThisLetter(postID)
-			p = append(p, post)
+			post, err := GetThisLetter(postID)
+			if err != nil {
+				LogError(err)
+				return
+			}
+			p = append(p, *post)
 			context := Context{
 				Posts: p,
 			}

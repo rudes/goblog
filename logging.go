@@ -11,11 +11,11 @@ func openFile() *os.File {
 	return f
 }
 
-func LogAnything(t string) {
+func LogAnything(t ...interface{}) {
 	f := openFile()
 	defer f.Close()
 	log.SetOutput(f)
-	log.Println(t)
+	log.Println(t...)
 }
 
 func LogIt(t Post, s int64) {
