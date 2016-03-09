@@ -8,15 +8,26 @@ import (
 	"net/http"
 	"text/template"
 	"time"
+
+	"github.com/rudes/crylog"
 )
 
 const (
 	STATIC_URL  = "/static/"
-	STATIC_ROOT = "/home/rudes/go/src/github.com/rudes/OtherLetter/static/"
-	TEMPLATES   = "/home/rudes/go/src/github.com/rudes/OtherLetter/templates"
+	STATIC_ROOT = "/home/rudes/go/src/github.com/rudes/otherletter/static/"
+	TEMPLATES   = "/home/rudes/go/src/github.com/rudes/otherletter/templates"
+	/* FOR DOCKER
+	STATIC_ROOT = "/go/src/github.com/rudes/otherletter/static/"
+	TEMPLATES   = "/go/src/github.com/rudes/otherletter/templates"
+	*/
 )
 
 var LoggedIn = false
+var l crylog.CryLog
+
+func init() {
+	l.File = "/var/www/OtherLetterAPI.log"
+}
 
 type Post struct {
 	ID, Title, Content, Date, Time string
@@ -31,7 +42,7 @@ type Context struct {
 func Home(w http.ResponseWriter, r *http.Request) {
 	p, err := GetAllLetters()
 	if err != nil {
-		LogError(err)
+		l.Log(err)
 		return
 	}
 	context := Context{
@@ -47,11 +58,11 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "POST" {
 		name := r.FormValue("username")
 		pass := r.FormValue("password")
-		LogAnything("Attempting to Login: ", name)
+		l.Log("Attempting to Login: ", name)
 		redirectTarget := "/"
 		if name == "rudes" && pass == "demonking" {
 			LoggedIn = true
-			LogAnything("Login Successful")
+			l.Log("Login Successful")
 			redirectTarget = "/new"
 		}
 		http.Redirect(w, r, redirectTarget, 302)
@@ -61,7 +72,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 func LogOut(w http.ResponseWriter, r *http.Request) {
 	context := Context{}
 	LoggedIn = false
-	LogAnything("Logged Out Successfully")
+	l.Log("Logged Out Successfully")
 	render(w, "index", context)
 }
 
@@ -86,7 +97,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		var p []Post
 		post, err := GetThisLetter(postID)
 		if err != nil {
-			LogError(err)
+			l.Log(err)
 			return
 		}
 		p = append(p, *post)
@@ -104,7 +115,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 			var p []Post
 			post, err := GetThisLetter(postID)
 			if err != nil {
-				LogError(err)
+				l.Log(err)
 				return
 			}
 			p = append(p, *post)
@@ -119,7 +130,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 			p.Content = r.FormValue("content")
 			err := UpdateThisLetter(p)
 			if err != nil {
-				LogError(err)
+				l.Log(err)
 				return
 			}
 		}
@@ -131,7 +142,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	if len(postID) != 0 {
 		err := DeleteThisLetter(postID)
 		if err != nil {
-			LogError(err)
+			l.Log(err)
 			return
 		}
 		fmt.Fprintf(w, "Deleted Post %s successfully", postID)
@@ -156,7 +167,7 @@ func HandleLetters(w http.ResponseWriter, r *http.Request) {
 	var p Post
 	err := d.Decode(&p)
 	if err != nil {
-		LogError(err)
+		l.Log(err)
 		return
 	}
 	HandleThisLetter(p)
@@ -168,12 +179,12 @@ func render(w http.ResponseWriter, tmpl string, context Context) {
 	tl := []string{TEMPLATES + "/base.tmpl", TEMPLATES + "/" + tmpl + ".tmpl"}
 	t, err := template.ParseFiles(tl...)
 	if err != nil {
-		LogError(err)
+		l.Log(err)
 		return
 	}
 	err = t.Execute(w, context)
 	if err != nil {
-		LogError(err)
+		l.Log(err)
 		return
 	}
 }

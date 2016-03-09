@@ -13,7 +13,7 @@ import (
 func OpenDatabase() *sql.DB {
 	db, err := sql.Open("mysql", "blog:a40echo14b19@/BLOG")
 	if err != nil {
-		LogError(err)
+		l.Log(err)
 		return nil
 	}
 	return db
@@ -22,10 +22,10 @@ func OpenDatabase() *sql.DB {
 func DeleteThisLetter(postID string) error {
 	db := OpenDatabase()
 	defer db.Close()
-	LogAnything("Deleting post: ", postID)
+	l.Log("Deleting post: ", postID)
 	res, err := db.Exec("DROP FROM blog_posts WHERE ID=" + postID)
 	if rows, _ := res.RowsAffected(); rows != 0 {
-		LogAnything("Deleted Post: ", postID)
+		l.Log("Deleted Post: ", postID)
 	}
 	return err
 }
@@ -33,7 +33,7 @@ func DeleteThisLetter(postID string) error {
 func GetThisLetter(postID string) (*Post, error) {
 	var p Post
 	db := OpenDatabase()
-	LogAnything("Retrieving post: ", postID)
+	l.Log("Retrieving post: ", postID)
 	err := db.QueryRow("SELECT ID,TITLE,CONTENT,DATE,TIME FROM blog_posts WHERE ID="+
 		postID).Scan(&p.ID,
 		&p.Title,
@@ -52,7 +52,7 @@ func GetAllLetters() ([]Post, error) {
 	if db == nil {
 		return nil, errors.New("Could Not Open Database")
 	}
-	LogAnything("Retrieving all posts")
+	l.Log("Retrieving all posts")
 	rows, err := db.Query("SELECT ID,TITLE,CONTENT,DATE,TIME FROM blog_posts ORDER BY DATE DESC, TIME DESC")
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func UpdateThisLetter(p Post) error {
 		return errors.New("Could Not Open Database")
 	}
 	defer db.Close()
-	LogAnything("Updating post: ", p.ID)
+	l.Log("Updating post: ", p.ID)
 	stmt, err := db.Prepare("UPDATE blog_posts SET CONTENT=? WHERE ID=" + p.ID)
 	if err != nil {
 		return err
@@ -85,7 +85,11 @@ func UpdateThisLetter(p Post) error {
 		return err
 	}
 	ro, _ := res.RowsAffected()
-	LogIt(p, ro)
+	if ro == 0 {
+		l.Log(p.Title, " Not Updated...")
+	} else {
+		l.Log(p.Title, " Updated")
+	}
 	return nil
 }
 
@@ -94,12 +98,12 @@ func HandleThisLetter(p Post) {
 	if db == nil {
 		return
 	}
-	LogAnything("Createing New Post: ", p.ID)
+	l.Log("Createing New Post: ", p.ID)
 	id := fmt.Sprintf("%x", md5.Sum([]byte(p.Title)))
 	t := time.Now()
 	stmt, err := db.Prepare("INSERT IGNORE INTO blog_posts(ID,TITLE,CONTENT,DATE,TIME) VALUES(?,?,?,?,?)")
 	if err != nil {
-		LogError(err)
+		l.Log(err)
 		return
 	}
 	res, err := stmt.Exec(id, p.Title, p.Content,
@@ -107,9 +111,13 @@ func HandleThisLetter(p Post) {
 		fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second()))
 	//res, err := db.Exec("INSERT IGNORE INTO blog_posts (ID,TITLE,CONTENT,DATE,TIME) VALUES ('" + id + "','" + p.Title + "','" + p.Content + "','" + fmt.Sprintf("%04d/%02d/%02d", t.Year(), t.Month(), t.Day()) + "','" + fmt.Sprintf("%02d:%02d:%02d", t.Hour(), t.Minute(), t.Second()) + "')")
 	if err != nil {
-		LogError(err)
+		l.Log(err)
 		return
 	}
 	ro, _ := res.RowsAffected()
-	LogIt(p, ro)
+	if ro == 0 {
+		l.Log(p.Title, " Already Exists...")
+	} else {
+		l.Log(p.Title, " Added")
+	}
 }
