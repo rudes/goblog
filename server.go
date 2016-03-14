@@ -3,210 +3,26 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
-	"strconv"
-	"text/template"
-	"time"
-
-	"github.com/rudes/crylog"
 )
 
-const (
-	STATIC_URL  = "/static/"
-	STATIC_ROOT = "/home/rudes/go/src/github.com/rudes/otherletter/static/"
-	TEMPLATES   = "/home/rudes/go/src/github.com/rudes/otherletter/templates"
-	/* FOR DOCKER
-	STATIC_ROOT = "/go/src/github.com/rudes/otherletter/static/"
-	TEMPLATES   = "/go/src/github.com/rudes/otherletter/templates"
-	*/
-)
-
-var l crylog.CryLog
-
-func init() {
-	l.File = "/var/www/OtherLetterAPI.log"
-}
-
-type Post struct {
-	ID, Title, Content, Date, Time string
-}
-
-type Context struct {
-	Posts    []Post
-	LoggedIn bool
-	Static   string
-}
-
-func Home(w http.ResponseWriter, r *http.Request) {
-	p, err := GetAllLetters()
+func handler(w http.ResponseWriter, r *http.Request) {
+	data := json.NewDecoder(r.Body)
+	var req Request
+	err := data.Decode(&req)
 	if err != nil {
 		l.Log(err)
 		return
 	}
-	context := Context{
-		Posts: p,
-	}
-	render(w, r, "index", context)
-}
-
-func LogIn(w http.ResponseWriter, r *http.Request) {
-	context := Context{}
-	if r.Method == "GET" {
-		render(w, r, "login", context)
-	} else if r.Method == "POST" {
-		name := r.FormValue("username")
-		pass := r.FormValue("password")
-		l.Log("Attempting to Login: ", name)
-		redirectTarget := "/"
-		if name == "rudes" && pass == "demonking" {
-			logCookie(w, "true")
-			l.Log("Login Successful")
-			redirectTarget = "/new"
-		}
-		http.Redirect(w, r, redirectTarget, 302)
-	}
-}
-
-func logCookie(w http.ResponseWriter, value string) {
-	expiration := time.Now().Add(365 * 24 * time.Hour)
-	cookie := http.Cookie{Name: "loggedin", Value: value, Expires: expiration}
-	http.SetCookie(w, &cookie)
-}
-
-func LogOut(w http.ResponseWriter, r *http.Request) {
-	logCookie(w, "false")
-	context := Context{}
-	l.Log("Logged Out Successfully")
-	render(w, r, "index", context)
-}
-
-func New(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		context := Context{}
-		render(w, r, "new", context)
-	} else if r.Method == "POST" {
-		content := r.FormValue("content")
-		title := r.FormValue("title")
-		p := Post{
-			Content: content,
-			Title:   title,
-		}
-		HandleThisLetter(p)
-	}
-}
-
-func Show(w http.ResponseWriter, r *http.Request) {
-	postID := r.URL.Path[len("/show/"):]
-	if len(postID) != 0 {
-		var p []Post
-		post, err := GetThisLetter(postID)
-		if err != nil {
-			l.Log(err)
-			return
-		}
-		p = append(p, *post)
-		context := Context{
-			Posts: p,
-		}
-		render(w, r, "show", context)
-	}
-}
-
-func Edit(w http.ResponseWriter, r *http.Request) {
-	postID := r.URL.Path[len("/edit/"):]
-	if len(postID) != 0 {
-		if r.Method == "GET" {
-			var p []Post
-			post, err := GetThisLetter(postID)
-			if err != nil {
-				l.Log(err)
-				return
-			}
-			p = append(p, *post)
-			context := Context{
-				Posts: p,
-			}
-			render(w, r, "edit", context)
-		} else if r.Method == "POST" {
-			var p Post
-			p.ID = postID
-			p.Title = r.FormValue("title")
-			p.Content = r.FormValue("content")
-			err := UpdateThisLetter(p)
-			if err != nil {
-				l.Log(err)
-				return
-			}
-		}
-	}
-}
-
-func Delete(w http.ResponseWriter, r *http.Request) {
-	postID := r.URL.Path[len("/delete/"):]
-	if len(postID) != 0 {
-		err := DeleteThisLetter(postID)
-		if err != nil {
-			l.Log(err)
-			return
-		}
-		fmt.Fprintf(w, "Deleted Post %s successfully", postID)
-	}
-}
-
-func Static(w http.ResponseWriter, r *http.Request) {
-	sf := r.URL.Path[len(STATIC_URL):]
-	if len(sf) != 0 {
-		f, err := http.Dir(STATIC_ROOT).Open(sf)
-		if err == nil {
-			content := io.ReadSeeker(f)
-			http.ServeContent(w, r, sf, time.Now(), content)
-			return
-		}
-	}
-	http.NotFound(w, r)
-}
-
-func HandleLetters(w http.ResponseWriter, r *http.Request) {
-	d := json.NewDecoder(r.Body)
-	var p Post
-	err := d.Decode(&p)
+	res, err := json.Marshal(handleReq(&req))
 	if err != nil {
 		l.Log(err)
 		return
 	}
-	HandleThisLetter(p)
-}
-
-func render(w http.ResponseWriter, r *http.Request, tmpl string, context Context) {
-	context.Static = STATIC_URL
-	if cookie, _ := r.Cookie("loggedin"); cookie != nil {
-		login, _ := strconv.ParseBool(cookie.Value)
-		context.LoggedIn = login
-	}
-	tl := []string{TEMPLATES + "/base.tmpl", TEMPLATES + "/" + tmpl + ".tmpl"}
-	t, err := template.ParseFiles(tl...)
-	if err != nil {
-		l.Log(err)
-		return
-	}
-	err = t.Execute(w, context)
-	if err != nil {
-		l.Log(err)
-		return
-	}
+	fmt.Fprintf(w, "%s", string(res))
 }
 
 func main() {
-	http.HandleFunc("/api", HandleLetters)
-	http.HandleFunc("/", Home)
-	http.HandleFunc("/show/", Show)
-	http.HandleFunc("/edit/", Edit)
-	http.HandleFunc("/login/", LogIn)
-	http.HandleFunc("/logout/", LogOut)
-	http.HandleFunc("/delete/", Delete)
-	http.HandleFunc("/new/", New)
-	http.HandleFunc(STATIC_URL, Static)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/api/", handler)
+	l.Log(http.ListenAndServe(":8080", nil))
 }
