@@ -7,19 +7,23 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	data := json.NewDecoder(r.Body)
-	var req Request
-	err := data.Decode(&req)
-	if err != nil {
-		l.Log(err)
-		return
+	if r.Method == "POST" {
+		data := json.NewDecoder(r.Body)
+		var req Request
+		err := data.Decode(&req)
+		if err != nil {
+			l.Log(err)
+			return
+		}
+		res, err := json.Marshal(handleReq(&req))
+		if err != nil {
+			l.Log(err)
+			return
+		}
+		fmt.Fprintf(w, "%s", string(res))
+	} else {
+		fmt.Fprintf(w, "Nothing to see here...")
 	}
-	res, err := json.Marshal(handleReq(&req))
-	if err != nil {
-		l.Log(err)
-		return
-	}
-	fmt.Fprintf(w, "%s", string(res))
 }
 
 func main() {

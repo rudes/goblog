@@ -16,15 +16,23 @@ func handleReq(req *Request) Response {
 	var p Post
 	switch req.Action {
 	case "get":
-		p, err = getLetter(req.PostID)
+		p, err = getLetter(req.Post.ID)
 		res.Posts = []Post{p}
 		res.Message = fmt.Sprintf("%v", err)
 	case "all":
 		res.Posts, err = getAllLetters()
 		res.Message = fmt.Sprintf("%v", err)
 	case "delete":
-		err = deleteLetter(req.PostID)
+		err = deleteLetter(req.Post.ID)
 		res.Message = fmt.Sprintf("%v", err)
+	case "updated":
+		err = updateLetter(req.Post)
+		res.Message = fmt.Sprintf("%v", err)
+	case "new":
+		err = newLetter(req.Post)
+		res.Message = fmt.Sprintf("%v", err)
+	default:
+		res.Message = "Unknown Command: " + req.Action
 	}
 	if err != nil {
 		l.Log(err)

@@ -13,7 +13,8 @@ type Post struct {
 }
 
 type Request struct {
-	PostID, Action string
+	Post   Post
+	Action string
 }
 
 type Response struct {
