@@ -1,0 +1,20 @@
+{{ define "content" }}
+<div class="title">
+    <h1>Other Letters</h1>
+    <small> Letters From the Other Side</small>
+</div>
+<div class="content">
+    {{ range . }}
+	<div class="posttitle" id="{{ .ID }}">
+	    {{ .Title }}
+	</div>
+	<div class="postcontent">
+	    {{ .Content }}
+	</div>
+	<div class="postfooter">
+	    Date Posted: {{ .Time }} {{ .Date }}
+	</div>
+	<br>
+    {{ end }}
+</div>
+{{ end }}

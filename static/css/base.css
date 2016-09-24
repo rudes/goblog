@@ -1,0 +1,61 @@
+html { font-size: 100%; }
+* { box-sizing: border-box }
+
+body {
+    background: #fff;
+    font-size: 16px;
+    line-height: 1.2;
+    width: 100%;
+    margin: 0;
+}
+
+div.title {
+    background: #007c7c;
+    overflow: hidden;
+    text-align: center;
+    padding-top: 72px;
+    padding-bottom: 120px;
+    color: #fff;
+}
+
+div.title h1 {
+    font-size: 443%;
+    margin: 0;
+    color: #000;
+}
+
+div.title small {
+    font-size: 120%;
+    color: #caf2e5;
+}
+
+div.content {
+    overflow: hidden;
+    display: block;
+    max-width: 980px;
+    margin: auto;
+    padding-top 10px;
+}
+
+div.posttitle {
+    font-size: 200%;
+    color: #000;
+    text-align: center;
+}
+
+div.postcontent {
+    padding: 10px;
+    font-size: 120%;
+    color: #000;
+}
+
+div.postfooter {
+    font-size: 100%;
+    color: #000;
+}
+
+@media screen and (max-width: 980px) {
+    div.post {
+	width: auto;
+    }
+}

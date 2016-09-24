@@ -1,32 +1,62 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"html/template"
+	"io"
 	"net/http"
+	"time"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		data := json.NewDecoder(r.Body)
-		var req Request
-		err := data.Decode(&req)
-		if err != nil {
-			l.Log(err)
-			return
-		}
-		res, err := json.Marshal(handleReq(&req))
-		if err != nil {
-			l.Log(err)
-			return
-		}
-		fmt.Fprintf(w, "%s", string(res))
-	} else {
-		fmt.Fprintf(w, "Nothing to see here...")
-	}
-}
+const (
+	_staticURL    = "/static/"
+	_templateRoot = "/go/src/github.com/rudes/otherletters.net/static/templates/"
+	_staticRoot   = "/go/src/github.com/rudes/otherletters.net/static/"
+)
 
 func main() {
-	http.HandleFunc("/api/", handler)
-	l.Log(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/", handler)
+	http.HandleFunc(_staticURL, staticHandler)
+	http.ListenAndServe(":8080", nil)
+}
+
+func staticHandler(w http.ResponseWriter, r *http.Request) {
+	sf := r.URL.Path[len(_staticURL):]
+	if len(sf) != 0 {
+		f, err := http.Dir(_staticRoot).Open(sf)
+		if err == nil {
+			content := io.ReadSeeker(f)
+			http.ServeContent(w, r, sf, time.Now(), content)
+			return
+		}
+	}
+	http.NotFound(w, r)
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	p, err := getall()
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+		return
+	}
+
+	render(w, p)
+}
+
+func render(w http.ResponseWriter, payload []Payload) {
+	tl := []string{_templateRoot + "base.tmpl",
+		_templateRoot + "header.tmpl",
+		_templateRoot + "index.tmpl",
+	}
+
+	t, err := template.ParseFiles(tl...)
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+		return
+	}
+	err = t.Execute(w, payload)
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+		return
+	}
 }
