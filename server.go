@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -39,6 +40,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
+
+	sort.Sort(ByDate(p))
 
 	render(w, p)
 }
