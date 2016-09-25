@@ -35,6 +35,18 @@ div.content {
     max-width: 980px;
     margin: auto;
     padding-top 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-top: 10px;
+}
+
+div.post {
+    border-radius: 20px;
+    border: 2px solid #333;
+    max-width: 500px;
+    padding: 20px;
+    text-align: center;
+    margin: auto;
 }
 
 div.posttitle {
@@ -47,9 +59,11 @@ div.postcontent {
     padding: 10px;
     font-size: 120%;
     color: #000;
+    text-align: left;
 }
 
 div.postfooter {
+    text-align: left;
     font-size: 100%;
     color: #000;
 }

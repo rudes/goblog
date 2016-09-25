@@ -1,6 +1,11 @@
 package main
 
-import "github.com/gocql/gocql"
+import (
+	"html/template"
+	"strings"
+
+	"github.com/gocql/gocql"
+)
 
 func openDB() (*gocql.Session, error) {
 	cluster := gocql.NewCluster("db")
@@ -20,10 +25,12 @@ func getall() ([]Payload, error) {
 
 	data := db.Query("SELECT id, title, content, date, time FROM letters").Iter()
 	for data.Scan(&id, &title, &content, &date, &time) {
+		content = template.HTMLEscapeString(content)
+		content = strings.Replace(content, "\n", "<br>", -1)
 		p = append(p, Payload{
 			ID:      id,
 			Title:   title,
-			Content: content,
+			Content: template.HTML(content),
 			Date:    date,
 			Time:    time,
 		})

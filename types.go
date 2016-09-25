@@ -1,8 +1,12 @@
 package main
 
+import "html/template"
+
 // Payload is the response
 type Payload struct {
-	ID, Title, Content, Date, Time string
+	ID, Title  string
+	Content    template.HTML
+	Date, Time string
 }
 
 // Context for website
