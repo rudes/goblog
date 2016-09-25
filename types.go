@@ -5,6 +5,17 @@ type Payload struct {
 	ID, Title, Content, Date, Time string
 }
 
+// Context for website
+type Context struct {
+	Payload []Payload
+	Config  Config
+}
+
+// Config struct for TOML file
+type Config struct {
+	Title, Subtitle, Author, AuthorEmail string
+}
+
 // ByDate allows sworting of Payload
 type ByDate []Payload
 

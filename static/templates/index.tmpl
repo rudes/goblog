@@ -1,10 +1,10 @@
 {{ define "content" }}
 <div class="title">
-    <h1>Other Letters</h1>
-    <small> Letters From the Other Side</small>
+    <h1>{{ Config.Title }}</h1>
+    <small>{{ Config.Subtitle }}</small>
 </div>
 <div class="content">
-    {{ range . }}
+    {{ range Payload }}
 	<div class="posttitle" id="{{ .ID }}">
 	    {{ .Title }}
 	</div>

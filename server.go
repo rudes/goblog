@@ -47,6 +47,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func render(w http.ResponseWriter, payload []Payload) {
+	conf, err := getConfig()
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+		return
+	}
+
+	context := Context{
+		Config:  conf,
+		Payload: payload,
+	}
+
 	tl := []string{_templateRoot + "base.tmpl",
 		_templateRoot + "header.tmpl",
 		_templateRoot + "index.tmpl",
@@ -57,7 +68,7 @@ func render(w http.ResponseWriter, payload []Payload) {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
-	err = t.Execute(w, payload)
+	err = t.Execute(w, context)
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 		return
