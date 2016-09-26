@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"html/template"
 	"strings"
 
@@ -14,16 +15,16 @@ func openDB() (*gocql.Session, error) {
 	return cluster.CreateSession()
 }
 
-func getall() ([]Payload, error) {
-	db, err := openDB()
-	if err != nil {
-		return nil, err
+func getall(db *gocql.Session) ([]Payload, error) {
+	if db == nil {
+		return nil, errors.New("Got nil cql session")
 	}
 
 	var id, title, content, date, time string
 	var p []Payload
 
 	data := db.Query("SELECT id, title, content, date, time FROM letters").Iter()
+	defer data.Close()
 	for data.Scan(&id, &title, &content, &date, &time) {
 		content = template.HTMLEscapeString(content)
 		content = strings.Replace(content, "\n", "<br>", -1)
@@ -34,10 +35,6 @@ func getall() ([]Payload, error) {
 			Date:    date,
 			Time:    time,
 		})
-	}
-
-	if err := data.Close(); err != nil {
-		return nil, err
 	}
 
 	return p, nil

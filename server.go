@@ -35,19 +35,25 @@ func staticHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	p, err := getall()
+	db, err := openDB()
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+		return
+	}
+	p, err := getall(db)
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
 
 	sort.Sort(ByDate(p))
+	sort.Sort(ByTime(p))
 
 	render(w, p)
 }
 
 func render(w http.ResponseWriter, payload []Payload) {
-	conf, err := getConfig()
+	conf, err := getConfig(_staticRoot + "config.toml")
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 		return

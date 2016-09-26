@@ -6,17 +6,13 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-func getConfig() (Config, error) {
+func getConfig(cfgFile string) (Config, error) {
 	var conf Config
-	_, err := os.Stat(_staticRoot + "config.toml")
+	_, err := os.Stat(cfgFile)
 	if err != nil {
 		return conf, err
 	}
 
-	_, err = toml.DecodeFile(_staticRoot+"config.toml", &conf)
-	if err != nil {
-		return conf, err
-	}
-
+	toml.DecodeFile(cfgFile, &conf)
 	return conf, nil
 }
