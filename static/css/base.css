@@ -2,31 +2,34 @@ html { font-size: 100%; }
 * { box-sizing: border-box }
 
 body {
-    background: #fff;
+    background: #262626;
     font-size: 16px;
     line-height: 1.2;
     width: 100%;
     margin: 0;
 }
 
+a {
+    text-decoration: none;
+}
+
 div.title {
-    background: #007c7c;
+    background: #191919;
     overflow: hidden;
     text-align: center;
     padding-top: 72px;
-    padding-bottom: 120px;
-    color: #fff;
+    padding-bottom: 70px;
 }
 
 div.title h1 {
     font-size: 443%;
     margin: 0;
-    color: #000;
+    color: #e6e8e6;
 }
 
 div.title small {
     font-size: 120%;
-    color: #caf2e5;
+    color: #f15025;
 }
 
 div.content {
@@ -41,9 +44,10 @@ div.content {
 }
 
 div.post {
-    border-radius: 20px;
+    border-radius: 6px;
     border: 2px solid #333;
-    max-width: 500px;
+    box-shadow: 2px 2px 5px #0d0d0d;
+    max-width: 600px;
     padding: 20px;
     text-align: center;
     margin: auto;
@@ -51,21 +55,21 @@ div.post {
 
 div.posttitle {
     font-size: 200%;
-    color: #000;
+    color: #f15025;
     text-align: center;
 }
 
 div.postcontent {
     padding: 10px;
     font-size: 120%;
-    color: #000;
+    color: #e6e8e6;
     text-align: left;
 }
 
 div.postfooter {
     text-align: left;
     font-size: 100%;
-    color: #000;
+    color: #ced0ce;
 }
 
 @media screen and (max-width: 980px) {

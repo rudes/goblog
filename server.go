@@ -16,7 +16,8 @@ const (
 )
 
 func main() {
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/", mainHandler)
+	http.HandleFunc("/view/", viewHandler)
 	http.HandleFunc(_staticURL, staticHandler)
 	http.ListenAndServe(":8080", nil)
 }
@@ -34,7 +35,26 @@ func staticHandler(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	post := r.URL.Path[len("/view/"):]
+	db, err := openDB()
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+		return
+	}
+	p, err := getone(db, post)
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+		return
+	}
+
+	sort.Sort(ByDate(p))
+	sort.Sort(ByTime(p))
+
+	render(w, p)
+}
+
+func mainHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := openDB()
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)

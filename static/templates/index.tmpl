@@ -1,24 +1,28 @@
 {{ define "content" }}
-<div class="title">
-    <h1>{{ .Config.Title }}</h1>
-    <small>{{ .Config.Subtitle }}</small>
-</div>
-<div class="content">
-    {{ range .Payload }}
-	<div class="post">
-	    <div class="posttitle" id="{{ .ID }}">
-		{{ .Title }}
-	    </div>
-	    <div class="postcontent">
-		{{ .Content }}
-	    </div>
-	    <div class="postfooter">
-		Date Posted: <span style="float: right;">
-		    {{ .Time }} {{ .Date }}
-		</span>
-	    </div>
+    <a href="/">
+	<div class="title">
+	    <h1>{{ .Config.Title }}</h1>
+	    <small>{{ .Config.Subtitle }}</small>
 	</div>
-	<br>
-    {{ end }}
-</div>
+    </a>
+    <div class="content">
+	{{ range .Payload }}
+	    <div class="post">
+		<a href="/view/{{ .ID }}">
+		    <div class="posttitle" id="{{ .ID }}">
+			{{ .Title }}
+		    </div>
+		</a>
+		<div class="postcontent">
+		    {{ .Content }}
+		</div>
+		<div class="postfooter">
+		    Date Posted: <span style="float: right;">
+			{{ .Time }} {{ .Date }}
+		    </span>
+		</div>
+	    </div>
+	    <br>
+	{{ end }}
+    </div>
 {{ end }}

@@ -15,6 +15,31 @@ func openDB() (*gocql.Session, error) {
 	return cluster.CreateSession()
 }
 
+func getone(db *gocql.Session, postID string) ([]Payload, error) {
+	if db == nil {
+		return nil, errors.New("Got nil cql session")
+	}
+
+	var id, title, content, date, time string
+	var p []Payload
+
+	data := db.Query("SELECT id, title, content, date, time FROM letters WHERE id = ?", postID).Iter()
+	defer data.Close()
+	for data.Scan(&id, &title, &content, &date, &time) {
+		content = template.HTMLEscapeString(content)
+		content = strings.Replace(content, "\n", "<br>", -1)
+		p = append(p, Payload{
+			ID:      id,
+			Title:   title,
+			Content: template.HTML(content),
+			Date:    date,
+			Time:    time,
+		})
+	}
+
+	return p, nil
+}
+
 func getall(db *gocql.Session) ([]Payload, error) {
 	if db == nil {
 		return nil, errors.New("Got nil cql session")
