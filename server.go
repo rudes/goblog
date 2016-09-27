@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -18,6 +19,7 @@ const (
 func main() {
 	http.HandleFunc("/", mainHandler)
 	http.HandleFunc("/view/", viewHandler)
+	http.HandleFunc("/post/", postHandler)
 	http.HandleFunc(_staticURL, staticHandler)
 	http.ListenAndServe(":8080", nil)
 }
@@ -32,6 +34,31 @@ func staticHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	http.NotFound(w, r)
+}
+
+func postHandler(w http.ResponseWriter, r *http.Request) {
+	conf, err := getConfig(_staticRoot + "config.toml")
+	if err != nil {
+		fmt.Fprintf(w, "%s", err)
+		return
+	}
+	var p Post
+	b := make([]byte, 10000)
+	r.Body.Read(b)
+	json.Unmarshal(b, &p)
+	if p.Key == conf.Key {
+		p.Key = ""
+		db, err := openDB()
+		if err != nil {
+			fmt.Fprintf(w, "%s", err)
+		}
+		err = post(db, p)
+		if err != nil {
+			fmt.Fprintf(w, "%s", err)
+		}
+	}
+	conf.Key = ""
 	http.NotFound(w, r)
 }
 

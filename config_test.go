@@ -13,6 +13,7 @@ func TestGetConfig(t *testing.T) {
 		Subtitle:    "Example Sub-Title",
 		Author:      "Example Writer",
 		AuthorEmail: "writer@example.com",
+		Key:         "http://randomkeygen.com/",
 	}
 	actual, err := getConfig(_testRoot + "example.toml")
 	if err != nil {

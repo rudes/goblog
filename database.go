@@ -15,6 +15,19 @@ func openDB() (*gocql.Session, error) {
 	return cluster.CreateSession()
 }
 
+func post(db *gocql.Session, p Post) error {
+	if db == nil {
+		return errors.New("Got nil cql session")
+	}
+
+	err := db.Query(`INSERT INTO letters (id, title, content, date, time) VALUES (?, ?, ?, ?, ?)`, p.Post.ID, p.Post.Title, p.Post.Content, p.Post.Date, p.Post.Time).Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getone(db *gocql.Session, postID string) ([]Payload, error) {
 	if db == nil {
 		return nil, errors.New("Got nil cql session")

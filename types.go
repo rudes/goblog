@@ -9,6 +9,12 @@ type Payload struct {
 	Date, Time string
 }
 
+// Post for post requests
+type Post struct {
+	Key  string
+	Post Payload
+}
+
 // Context for website
 type Context struct {
 	Payload []Payload
@@ -17,7 +23,8 @@ type Context struct {
 
 // Config struct for TOML file
 type Config struct {
-	Title, Subtitle, Author, AuthorEmail string
+	Title, Subtitle          string
+	Author, AuthorEmail, Key string
 }
 
 // ByDate allows sorting of Payload
