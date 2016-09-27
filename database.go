@@ -15,12 +15,12 @@ func openDB() (*gocql.Session, error) {
 	return cluster.CreateSession()
 }
 
-func post(db *gocql.Session, p Post) error {
+func post(db *gocql.Session, p Payload) error {
 	if db == nil {
 		return errors.New("Got nil cql session")
 	}
 
-	err := db.Query(`INSERT INTO letters (id, title, content, date, time) VALUES (?, ?, ?, ?, ?)`, p.Post.ID, p.Post.Title, p.Post.Content, p.Post.Date, p.Post.Time).Exec()
+	err := db.Query(`INSERT INTO letters ( id, title, content, date, time) VALUES (?, ?, ?, ?, ?)`, p.ID, p.Title, p.Content, p.Date, p.Time).Exec()
 	if err != nil {
 		return err
 	}

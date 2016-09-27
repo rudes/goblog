@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -43,22 +44,37 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
-	var p Post
-	b := make([]byte, 10000)
-	r.Body.Read(b)
-	json.Unmarshal(b, &p)
-	if p.Key == conf.Key {
-		p.Key = ""
+	var postd Post
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&postd)
+	id := md5.Sum([]byte(postd.Title + postd.Content))
+	p := Payload{
+		ID:      fmt.Sprintf("%x", id),
+		Title:   postd.Title,
+		Content: template.HTML(postd.Content),
+		Date: fmt.Sprintf("%s",
+			time.Now().Local().Format("09/27/2016")),
+		Time: fmt.Sprintf("%02d:%02d", time.Now().Hour(),
+			time.Now().Minute()),
+	}
+	fmt.Println(postd.Key, conf.Key)
+	if postd.Key == conf.Key {
+		fmt.Println(p.ID, p.Content)
+		postd.Key = ""
+		conf.Key = ""
 		db, err := openDB()
 		if err != nil {
-			fmt.Fprintf(w, "%s", err)
+			fmt.Fprintf(w, "Error Opening DB: %s", err)
+			return
 		}
 		err = post(db, p)
 		if err != nil {
-			fmt.Fprintf(w, "%s", err)
+			fmt.Fprintf(w, "Error Posting: %s", err)
+			return
 		}
+		fmt.Fprintf(w, "%s", "Nailed it")
+		return
 	}
-	conf.Key = ""
 	http.NotFound(w, r)
 }
 

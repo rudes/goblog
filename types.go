@@ -11,8 +11,8 @@ type Payload struct {
 
 // Post for post requests
 type Post struct {
-	Key  string
-	Post Payload
+	Key            string
+	Title, Content string
 }
 
 // Context for website

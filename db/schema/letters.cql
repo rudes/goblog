@@ -4,10 +4,10 @@ CREATE KEYSPACE letters WITH REPLICATION = {
 };
 
 CREATE TABLE letters.letters (
-    "id" varchar,
-    "title" varchar,
-    "content" varchar,
-    "date" varchar,
-    "time" varchar,
+    "id" text,
+    "title" text,
+    "content" text,
+    "date" text,
+    "time" text,
     PRIMARY KEY("id")
 );
