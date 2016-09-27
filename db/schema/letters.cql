@@ -7,7 +7,6 @@ CREATE TABLE letters.letters (
     "id" text,
     "title" text,
     "content" text,
-    "date" text,
-    "time" text,
+    "date" timestamp,
     PRIMARY KEY("id")
 );

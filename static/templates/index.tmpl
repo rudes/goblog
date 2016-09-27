@@ -18,11 +18,10 @@
 		</div>
 		<div class="postfooter">
 		    Date Posted: <span style="float: right;">
-			{{ .Time }} {{ .Date }}
+			{{ fmtDate .Date }}
 		    </span>
 		</div>
 	    </div>
-	    <br>
 	{{ end }}
     </div>
 {{ end }}

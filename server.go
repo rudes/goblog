@@ -52,10 +52,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		ID:      fmt.Sprintf("%x", id),
 		Title:   postd.Title,
 		Content: template.HTML(postd.Content),
-		Date: fmt.Sprintf("%s",
-			time.Now().Local().Format("09/27/2016")),
-		Time: fmt.Sprintf("%02d:%02d", time.Now().Hour(),
-			time.Now().Minute()),
+		Date:    time.Now().Local(),
 	}
 	fmt.Println(postd.Key, conf.Key)
 	if postd.Key == conf.Key {
@@ -91,9 +88,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sort.Sort(ByDate(p))
-	sort.Sort(ByTime(p))
-
 	render(w, p)
 }
 
@@ -110,7 +104,6 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sort.Sort(ByDate(p))
-	sort.Sort(ByTime(p))
 
 	render(w, p)
 }
@@ -132,7 +125,10 @@ func render(w http.ResponseWriter, payload []Payload) {
 		_templateRoot + "index.tmpl",
 	}
 
-	t, err := template.ParseFiles(tl...)
+	tFuncs := template.FuncMap{
+		"fmtDate": fmtDate,
+	}
+	t, err := template.New("base.tmpl").Funcs(tFuncs).ParseFiles(tl...)
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 		return
@@ -142,4 +138,8 @@ func render(w http.ResponseWriter, payload []Payload) {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
+}
+
+func fmtDate(t time.Time) string {
+	return t.Format("01/02/2006")
 }

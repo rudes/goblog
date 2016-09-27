@@ -4,6 +4,7 @@ import (
 	"errors"
 	"html/template"
 	"strings"
+	"time"
 
 	"github.com/gocql/gocql"
 )
@@ -20,7 +21,8 @@ func post(db *gocql.Session, p Payload) error {
 		return errors.New("Got nil cql session")
 	}
 
-	err := db.Query(`INSERT INTO letters ( id, title, content, date, time) VALUES (?, ?, ?, ?, ?)`, p.ID, p.Title, p.Content, p.Date, p.Time).Exec()
+	err := db.Query(`INSERT INTO letters ( id, title, content, date) VALUES (?, ?, ?, ?)`,
+		p.ID, p.Title, p.Content, p.Date).Exec()
 	if err != nil {
 		return err
 	}
@@ -33,12 +35,13 @@ func getone(db *gocql.Session, postID string) ([]Payload, error) {
 		return nil, errors.New("Got nil cql session")
 	}
 
-	var id, title, content, date, time string
+	var id, title, content string
+	var date time.Time
 	var p []Payload
 
-	data := db.Query("SELECT id, title, content, date, time FROM letters WHERE id = ?", postID).Iter()
+	data := db.Query("SELECT id, title, content, date FROM letters WHERE id = ?", postID).Iter()
 	defer data.Close()
-	for data.Scan(&id, &title, &content, &date, &time) {
+	for data.Scan(&id, &title, &content, &date) {
 		content = template.HTMLEscapeString(content)
 		content = strings.Replace(content, "\n", "<br>", -1)
 		p = append(p, Payload{
@@ -46,7 +49,6 @@ func getone(db *gocql.Session, postID string) ([]Payload, error) {
 			Title:   title,
 			Content: template.HTML(content),
 			Date:    date,
-			Time:    time,
 		})
 	}
 
@@ -58,12 +60,13 @@ func getall(db *gocql.Session) ([]Payload, error) {
 		return nil, errors.New("Got nil cql session")
 	}
 
-	var id, title, content, date, time string
+	var id, title, content string
+	var date time.Time
 	var p []Payload
 
-	data := db.Query("SELECT id, title, content, date, time FROM letters").Iter()
+	data := db.Query("SELECT id, title, content, date FROM letters").Iter()
 	defer data.Close()
-	for data.Scan(&id, &title, &content, &date, &time) {
+	for data.Scan(&id, &title, &content, &date) {
 		content = template.HTMLEscapeString(content)
 		content = strings.Replace(content, "\n", "<br>", -1)
 		p = append(p, Payload{
@@ -71,7 +74,6 @@ func getall(db *gocql.Session) ([]Payload, error) {
 			Title:   title,
 			Content: template.HTML(content),
 			Date:    date,
-			Time:    time,
 		})
 	}
 
