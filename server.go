@@ -144,6 +144,18 @@ func render(w http.ResponseWriter, payload []Payload, page string) {
 			fmt.Fprintf(w, "%s", err)
 			return
 		}
+		return
+	} else if page == "index" {
+		t, err := template.ParseFiles(tl...)
+		if err != nil {
+			fmt.Fprintf(w, "%s", err)
+			return
+		}
+		err = t.Execute(w, context)
+		if err != nil {
+			fmt.Fprintf(w, "%s", err)
+			return
+		}
 	}
 	t, err := template.ParseFiles(tl...)
 	if err != nil {

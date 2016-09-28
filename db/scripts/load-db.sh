@@ -5,7 +5,8 @@ bash cassandra
 sleep 10
 
 cqlsh -f /tmp/schema/letters.cql
-if [ "$LETTERS" -eq "dev" ];then
+ENVI="dev"
+if [  "$ENVI" = "dev" ];then
     cqlsh -f /tmp/load/letters.cql
 fi
 
