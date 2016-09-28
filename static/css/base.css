@@ -23,13 +23,15 @@ div.title {
 
 div.title h1 {
     font-size: 443%;
+    font-family: 'Roboto Slab', serif;
     margin: 0;
     color: #e6e8e6;
 }
 
 div.title small {
-    font-size: 120%;
+    font-size: 140%;
     color: #f15025;
+    font-family: 'Roboto', sans-serif;
 }
 
 div.content {
@@ -41,6 +43,7 @@ div.content {
     padding-left: 10px;
     padding-right: 10px;
     margin-top: 10px;
+    font-family: 'Roboto', sans-serif;
 }
 
 div.post {
@@ -58,6 +61,7 @@ div.posttitle {
     font-size: 200%;
     color: #f15025;
     text-align: center;
+    font-family: 'Roboto Slab', serif;
 }
 
 div.postcontent {
