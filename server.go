@@ -44,35 +44,39 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
-	var postd Post
-	decoder := json.NewDecoder(r.Body)
-	decoder.Decode(&postd)
-	id := md5.Sum([]byte(postd.Title + postd.Content))
-	p := Payload{
-		ID:      fmt.Sprintf("%x", id),
-		Title:   postd.Title,
-		Content: template.HTML(postd.Content),
-		Date:    time.Now().Local(),
-	}
-	fmt.Println(postd.Key, conf.Key)
-	if postd.Key == conf.Key {
-		fmt.Println(p.ID, p.Content)
-		postd.Key = ""
-		conf.Key = ""
-		db, err := openDB()
-		if err != nil {
-			fmt.Fprintf(w, "Error Opening DB: %s", err)
+	if r.Method == "GET" {
+		render(w, nil, "post")
+	} else {
+		var postd Post
+		decoder := json.NewDecoder(r.Body)
+		decoder.Decode(&postd)
+		id := md5.Sum([]byte(postd.Title + postd.Content))
+		p := Payload{
+			ID:      fmt.Sprintf("%x", id),
+			Title:   postd.Title,
+			Content: template.HTML(postd.Content),
+			Date:    time.Now().Local(),
+		}
+		fmt.Println(postd.Key, conf.Key)
+		if postd.Key == conf.Key {
+			fmt.Println(p.ID, p.Content)
+			postd.Key = ""
+			conf.Key = ""
+			db, err := openDB()
+			if err != nil {
+				fmt.Fprintf(w, "Error Opening DB: %s", err)
+				return
+			}
+			err = post(db, p)
+			if err != nil {
+				fmt.Fprintf(w, "Error Posting: %s", err)
+				return
+			}
+			fmt.Fprintf(w, "%s", "Nailed it")
 			return
 		}
-		err = post(db, p)
-		if err != nil {
-			fmt.Fprintf(w, "Error Posting: %s", err)
-			return
-		}
-		fmt.Fprintf(w, "%s", "Nailed it")
-		return
+		http.NotFound(w, r)
 	}
-	http.NotFound(w, r)
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +92,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render(w, p)
+	render(w, p, "index")
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -105,30 +109,43 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 	sort.Sort(ByDate(p))
 
-	render(w, p)
+	render(w, p, "index")
 }
 
-func render(w http.ResponseWriter, payload []Payload) {
+func render(w http.ResponseWriter, payload []Payload, page string) {
 	conf, err := getConfig(_staticRoot + "config.toml")
+	conf.Key = ""
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
 
 	context := Context{
-		Config:  conf,
-		Payload: payload,
+		Config: conf,
 	}
-
-	tl := []string{_templateRoot + "base.tmpl",
+	tl := []string{
+		_templateRoot + "base.tmpl",
 		_templateRoot + "header.tmpl",
-		_templateRoot + "index.tmpl",
+		_templateRoot + page + ".tmpl",
 	}
+	if payload != nil {
+		context.Payload = payload
 
-	tFuncs := template.FuncMap{
-		"fmtDate": fmtDate,
+		tFuncs := template.FuncMap{
+			"fmtDate": fmtDate,
+		}
+		t, err := template.New("base.tmpl").Funcs(tFuncs).ParseFiles(tl...)
+		if err != nil {
+			fmt.Fprintf(w, "%s", err)
+			return
+		}
+		err = t.Execute(w, context)
+		if err != nil {
+			fmt.Fprintf(w, "%s", err)
+			return
+		}
 	}
-	t, err := template.New("base.tmpl").Funcs(tFuncs).ParseFiles(tl...)
+	t, err := template.ParseFiles(tl...)
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 		return

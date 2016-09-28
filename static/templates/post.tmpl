@@ -1,0 +1,30 @@
+{{ define "content" }}
+    <body onload="enter()" onunload="leave()">
+    <a href="/">
+	<div class="title">
+	    <h1>{{ .Config.Title }}</h1>
+	    <small>{{ .Config.Subtitle }}</small>
+	</div>
+    </a>
+    <div class="content">
+	<form>
+	<div class="post">
+	    <div class="posttitle">
+		<input type="text" id="posttitle" class="posttitle" value="">
+	    </div>
+	    <div class="postcontent">
+		<textarea class="content" id="postcontent" cols="30"></textarea>
+	    </div>
+	    <div class="postfooter">
+		<button onclick="send()" id="post" class="postbutton">
+		    Post
+		</button>
+		<span style="float: right;">
+		    Key: <input type="text" id="postkey" class="postkey">
+		</span>
+	    </div>
+	</div>
+	</form>
+    </div>
+    </body>
+{{ end }}
