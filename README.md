@@ -1,6 +1,8 @@
 # goblog
 
-Nofrills blog written in go with an open api for posting (so we can post form other things)
+No-frills blog written in [go](https://golang.org/) using
+[Cassandra](http://cassandra.apache.org/) with an open api
+for posting (so we can post form other things)
 
 # Installation
 
