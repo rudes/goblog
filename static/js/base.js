@@ -4,13 +4,13 @@ function getcookie(cname) {
     "use strict";
     var i = 0, name = cname + "=", ca = document.cookie.split(';');
     for(i; i < ca.length; i++) {
-	var c = ca[i];
-	while(c.charAt(0)==' ') {
-	    c = c.substring(1);
-	}
-	if (c.indexOf(name) == 0) {
-	    return c.substring(name.length, c.length);
-	}
+        var c = ca[i];
+        while(c.charAt(0)==' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
     }
     return "";
 }
@@ -36,8 +36,12 @@ function send() {
     key = window.document.getElementById("postkey").value;
     title = window.document.getElementById("posttitle").value;
 
-    xhr = new XMLHttpRequest();
-    xhr.open("POST", "/post/");
-    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    xhr.send(JSON.stringify({Key: key, Title: title, Content: cnt}));
+    if (!cnt || !key || !title) {
+        alert("Missing Field(s)!!");
+    } else {
+        xhr = new XMLHttpRequest();
+        xhr.open("POST", "/post/");
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        xhr.send(JSON.stringify({Key: key, Title: title, Content: cnt}));
+    }
 }
