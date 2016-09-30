@@ -30,6 +30,11 @@ type Config struct {
 	Author, AuthorEmail, Key string
 }
 
+// Message struct for response json
+type Message struct {
+	Message string
+}
+
 // ByDate allows sorting of Payload
 type ByDate []Payload
 

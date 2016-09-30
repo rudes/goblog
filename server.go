@@ -52,7 +52,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		decoder.Decode(&postd)
 		id := md5.Sum([]byte(postd.Title + postd.Content))
 		p := Payload{
-			ID:      fmt.Sprintf("%x", id),
+			ID:      fmt.Sprintf("%x", id)[1:10],
 			Title:   postd.Title,
 			Content: template.HTML(postd.Content),
 			Date:    time.Now().Local(),
@@ -60,23 +60,40 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(postd.Key, conf.Key)
 		if postd.Key == conf.Key {
 			fmt.Println(p.ID, p.Content)
-			postd.Key = ""
-			conf.Key = ""
+			postd.Key, conf.Key = ""
 			db, err := openDB()
 			if err != nil {
-				fmt.Fprintf(w, "Error Opening DB: %s", err)
+				jsonRes(w, Message{
+					Message: fmt.Sprintf("Error Opening DB: %s",
+						err),
+				})
 				return
 			}
 			err = post(db, p)
 			if err != nil {
-				fmt.Fprintf(w, "Error Posting: %s", err)
+				jsonRes(w, Message{
+					Message: fmt.Sprintf("Error Posting: %s",
+						err),
+				})
 				return
 			}
-			fmt.Fprintf(w, "%s", "Nailed it")
+			jsonRes(w, Message{
+				Message: "Posted Successfully",
+			})
 			return
 		}
 		http.NotFound(w, r)
 	}
+}
+
+func jsonRes(w http.ResponseWriter, message Message) error {
+	res, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
+	return nil
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
