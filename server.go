@@ -60,7 +60,8 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(postd.Key, conf.Key)
 		if postd.Key == conf.Key {
 			fmt.Println(p.ID, p.Content)
-			postd.Key, conf.Key = ""
+			postd.Key = ""
+			conf.Key = ""
 			db, err := openDB()
 			if err != nil {
 				jsonRes(w, Message{
