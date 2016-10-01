@@ -28,6 +28,7 @@ type Context struct {
 type Config struct {
 	Title, Subtitle          string
 	Author, AuthorEmail, Key string
+	Tags, Description        string
 }
 
 // Message struct for response json

@@ -2,6 +2,10 @@
 <title>
     {{ .Config.Title }} : {{ .Config.Subtitle }}
 </title>
+<link rel="dateModified" content="{{ .Payload.Date }}">
+<link rel="description" content="{{ .Config.Description }}">
+<link rel="author" content="{{ .Config.Author }}, {{ .Config.AuthorEmail }}">
+<link rel="tags" content="{{ .Config.Tags }}">
 <link rel="stylesheet" href="/static/css/base.css">
 <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:700|Roboto:100" rel="stylesheet">
 <script type="text/javascript" src="/static/js/base.js"></script>
