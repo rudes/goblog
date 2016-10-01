@@ -40,6 +40,11 @@ function send() {
         alert("Missing Field(s)!!");
     } else {
         xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                console.log(xhr.response);
+            }
+        }
         xhr.open("POST", "/post/");
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
         xhr.send(JSON.stringify({Key: key, Title: title, Content: cnt}));
