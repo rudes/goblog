@@ -146,36 +146,18 @@ func render(w http.ResponseWriter, payload []Payload, page string) {
 		_templateRoot + "header.tmpl",
 		_templateRoot + page + ".tmpl",
 	}
-	if payload != nil {
-		context.Payload = payload
+	context.Payload = payload
 
-		tFuncs := template.FuncMap{
-			"fmtDate": fmtDate,
-		}
-		t, err := template.New("base.tmpl").Funcs(tFuncs).ParseFiles(tl...)
-		if err != nil {
-			fmt.Fprintf(w, "%s", err)
-			return
-		}
-		err = t.Execute(w, context)
-		if err != nil {
-			fmt.Fprintf(w, "%s", err)
-			return
-		}
-		return
-	} else if page == "index" {
-		t, err := template.ParseFiles(tl...)
-		if err != nil {
-			fmt.Fprintf(w, "%s", err)
-			return
-		}
-		err = t.Execute(w, context)
-		if err != nil {
-			fmt.Fprintf(w, "%s", err)
-			return
-		}
+	tFuncs := template.FuncMap{
+		"fmtDate": func(t time.Time) string {
+			return t.Format("01/02/2006")
+		},
+		"recent": func() string {
+			return fmt.Sprintf("%s",
+				context.Payload[0].Date)
+		},
 	}
-	t, err := template.ParseFiles(tl...)
+	t, err := template.New("base.tmpl").Funcs(tFuncs).ParseFiles(tl...)
 	if err != nil {
 		fmt.Fprintf(w, "%s", err)
 		return
@@ -185,8 +167,5 @@ func render(w http.ResponseWriter, payload []Payload, page string) {
 		fmt.Fprintf(w, "%s", err)
 		return
 	}
-}
-
-func fmtDate(t time.Time) string {
-	return t.Format("01/02/2006")
+	return
 }
