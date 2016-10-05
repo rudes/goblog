@@ -45,7 +45,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "GET" {
-		render(w, nil, "post")
+		render(w, []Payload{Payload{Date: time.Now().Local()}}, "post")
 	} else {
 		var postd Post
 		decoder := json.NewDecoder(r.Body)
