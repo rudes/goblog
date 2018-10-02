@@ -14,6 +14,8 @@ func TestGetConfig(t *testing.T) {
 		Author:      "Example Writer",
 		AuthorEmail: "writer@example.com",
 		Key:         "http://randomkeygen.com/",
+		Tags:        "tags,for,search,engines",
+		Description: "Description of website for search engines",
 	}
 	actual, err := getConfig(_testRoot + "example.toml")
 	if err != nil {
